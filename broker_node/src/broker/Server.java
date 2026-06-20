@@ -10,11 +10,18 @@ import pubsub.PubSub;
 public final class Server {
     private Server(){};
     static void init(PubSub pubsub, String port) throws RemoteException {
-        //1. encontrar el registro, que se puede buscar, con LocateRegistry de registry con el puerto
-        // hecho en la línea 24 de EchoServer.java
-        Registry registry = LocateRegistry.getRegistry(Integer.parseInt(port));
-        //2. exportar el objeto remoto, con la librería registry
-        registry.rebind("nombre", pubsub);
+        try{
+            
+            //1. encontrar el registro, que se puede buscar, con LocateRegistry de registry con el puerto
+            // hecho en la línea 24 de EchoServer.java
+            Registry registry = LocateRegistry.getRegistry(Integer.parseInt(port));
+            //2. exportar el objeto remoto, con la librería registry
+            registry.rebind("nombre", pubsub);
+            
+        }catch (Exception e) {
+            System.err.println("Server exception:");
+            e.printStackTrace(); System.exit(1);
+        }
     }
 }
 /*
