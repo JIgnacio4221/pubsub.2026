@@ -27,26 +27,31 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     }
 
     public synchronized boolean createTopic(String topic) throws RemoteException {
-        if (topics.containsKey(topic)) {
-            return false;
-        } else {
+        if (!topics.containsKey(topic)) {
             topics.put(topic, new Topic(topic));
             return true;
         }
+        return false;
     }
 
     public synchronized Collection<String> topicList() throws RemoteException {
-        //return Collection.unmodifiableCollection(topics.keySet());
         return new ArrayList<>(topics.keySet());
     }
 
     public synchronized boolean publish(Event ev) throws RemoteException {
-
+        Topic topic = topics.get(ev.getTopic());
+        if (topic != null) {
+            topic.addEvent(ev);
+            return true;
+        }
         return false;
     }
 
     public synchronized Event consumeEvent(String topic) throws RemoteException {
-        return null;
+        Topic t = topics.get(topic);
+        if (t == null)
+            throw new NoSuchObjectException("Topic no existe");
+        return t.consumeEvent();
     }
 
     public synchronized Subscriber initSubscriber(SubscriberCallback c) throws RemoteException {
