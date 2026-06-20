@@ -27,10 +27,6 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     }
 
     public synchronized boolean createTopic(String topic) throws RemoteException {
-        if (!topics.containsKey(topic)) {
-            topics.put(topic, new Topic(topic));
-            return true;
-        }
         return false;
     }
 
