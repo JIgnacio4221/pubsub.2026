@@ -24,6 +24,7 @@ public final class Client {
         } catch (Exception e) {
             System.err.println("Client exception:"); e.printStackTrace();
             return null;
+        }
     }
 }
 
