@@ -29,7 +29,8 @@ public final class Client {
 }
 
 /*
-Fase 1: Primer contacto entre un cliente y el broker
+COMPLETADA. Nos funcionan las preubas
+Fase 1: Primer contacto entre un cliente y el broker - COMPLETADA. Nos funcionan las preubas
 En esta fase, se plantea únicamente que un cliente pueda contactar con el broker. Para ello, hay que realizar dos acciones:
 
     En el método init del fichero broker_node/src/broker/Server.java hay que incluir la lógica para localizar al registry y dar de alta el servicio general.
@@ -48,4 +49,4 @@ Introduzca operacion (Ctrl-D para terminar)
 	subscribeGlob|topicListBySubscriber|unsubscribe|exit|deleteTopic
 getVersion
 getVersion ha devuelto: 1
- */
+*/
