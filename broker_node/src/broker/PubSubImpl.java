@@ -45,6 +45,10 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
         return false;
     }
 
+    Topic getTopic(String name) {
+        return topics.get(name);
+    }
+
     public synchronized Collection<String> topicList() throws RemoteException {
         return new ArrayList<>(topics.keySet());
     }
@@ -81,7 +85,9 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     }
 
     public synchronized Collection<Subscriber> subscriberListByTopic(String topic) throws RemoteException {
-        return null;
+        Topic t = topics.get(topic);
+        if (t == null) return null;
+        return new ArrayList<>(t.getSubscribers());
     }
 
     public synchronized boolean deleteTopic(String topic) throws RemoteException {
