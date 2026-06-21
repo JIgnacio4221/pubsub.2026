@@ -19,7 +19,7 @@ class SubscriberImpl extends UnicastRemoteObject implements Subscriber  {
     transient SubscriberCallback scbk; 
 
     public SubscriberImpl(PubSubImpl p, SubscriberCallback s) throws RemoteException {
-        super() // extiende UnicastRemoteObject(); 
+        super(); // extiende UnicastRemoteObject(); 
         scbk=s;
         subUUID = UUID.randomUUID();
 	ps=p;

@@ -14,6 +14,7 @@ import pubsub.SubscriberCallback;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.List;
 
 class PubSubImpl extends UnicastRemoteObject implements PubSub {
     public static final long serialVersionUID = 1234567890L;
@@ -35,7 +36,7 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
                 // tenga callback no nulo, llamar a callback.topicAdded(topic)
                 SubscriberImpl subscriber = subscribers.get(i);
                 // el callback es scbk de la clase SubscriberImpl
-                if(suscriber.scbk != null) {
+                if(subscriber.scbk != null) {
                     subscriber.scbk.topicAdded(topic);
                 }
             }
@@ -66,14 +67,14 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
 
     public synchronized Subscriber initSubscriber(SubscriberCallback c) throws RemoteException {
         //es crear el usuarioSuscrito, añadirlo a la lista y retornarlo
-        SubscriberImpl subscriber = new SubscriberImpl(c);
+        SubscriberImpl subscriber = new SubscriberImpl(this, c);
         subscribers.add(subscriber);
         return subscriber;
     }
 
     public synchronized Collection<Subscriber> subscriberList() throws RemoteException {
         //simplemente es retornar la lista
-        return subscribers;
+        return new ArrayList<>(subscribers);
     }
 
     public synchronized Collection<Subscriber> subscriberListByTopic(String topic) throws RemoteException {
