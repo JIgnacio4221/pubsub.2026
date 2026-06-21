@@ -12,14 +12,15 @@ import pubsub.SubscriberCallback;
 import pubsub.Event;
 import java.util.List;
 import java.util.ArrayList;
-
+import java.util.LinkedList;
 class SubscriberImpl extends UnicastRemoteObject implements Subscriber  {
     public static final long serialVersionUID=1234567890L;
     UUID subUUID; // para facilitar depuración
     PubSubImpl ps; // para acceder a funcionalidad del servicio general
     // para notificar al subscriptor de creación y destrucción de temas
     transient SubscriberCallback scbk; 
-    private List<String> topicsSubscribed = new java.util.ArrayList<>();
+    private List<String> topicsSubscribed = new ArrayList<>();
+    private LinkedList<Event> events = new LinkedList<>();
 
     public SubscriberImpl(PubSubImpl p, SubscriberCallback s) throws RemoteException {
         super(); // extiende UnicastRemoteObject(); 
@@ -45,7 +46,13 @@ class SubscriberImpl extends UnicastRemoteObject implements Subscriber  {
         return 0;
     }
     public Event getEvent() throws RemoteException {
+        if (!events.isEmpty()) {
+            return events.poll();
+        }
         return null;
+    }
+    public void addEvent(Event event) {
+        events.add(event);
     }
     public Collection<String> topicListBySubscriber() throws RemoteException {
         return new ArrayList<>(topicsSubscribed);
