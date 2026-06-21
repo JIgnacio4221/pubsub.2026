@@ -20,7 +20,7 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     public static final long serialVersionUID = 1234567890L;
     private Map<String, Topic> topics = new HashMap<>();
     private List<SubscriberImpl> subscribers = new ArrayList<>();
-    
+
     public PubSubImpl() throws RemoteException {
     }
 
@@ -31,12 +31,12 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     public synchronized boolean createTopic(String topic) throws RemoteException {
         if (!topics.containsKey(topic)) {
             topics.put(topic, new Topic(topic));
-            for(int i=0; i<subscribers.size(); i++) {
-                //recorrer la lista de suscriptores, y para cada uno que 
+            for (int i = 0; i < subscribers.size(); i++) {
+                // recorrer la lista de suscriptores, y para cada uno que
                 // tenga callback no nulo, llamar a callback.topicAdded(topic)
                 SubscriberImpl subscriber = subscribers.get(i);
                 // el callback es scbk de la clase SubscriberImpl
-                if(subscriber.scbk != null) {
+                if (subscriber.scbk != null) {
                     subscriber.scbk.topicAdded(topic);
                 }
             }
@@ -53,6 +53,9 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
         Topic topic = topics.get(ev.getTopic());
         if (topic != null) {
             topic.addEvent(ev);
+            for (SubscriberImpl sub : topic.getSubscribers()) {
+                sub.addEvent(ev);
+            }
             return true;
         }
         return false;
@@ -66,14 +69,14 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     }
 
     public synchronized Subscriber initSubscriber(SubscriberCallback c) throws RemoteException {
-        //es crear el usuarioSuscrito, añadirlo a la lista y retornarlo
+        // es crear el usuarioSuscrito, añadirlo a la lista y retornarlo
         SubscriberImpl subscriber = new SubscriberImpl(this, c);
         subscribers.add(subscriber);
         return subscriber;
     }
 
     public synchronized Collection<Subscriber> subscriberList() throws RemoteException {
-        //simplemente es retornar la lista
+        // simplemente es retornar la lista
         return new ArrayList<>(subscribers);
     }
 
