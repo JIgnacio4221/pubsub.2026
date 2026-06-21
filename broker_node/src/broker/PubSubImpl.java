@@ -18,7 +18,8 @@ import java.util.ArrayList;
 class PubSubImpl extends UnicastRemoteObject implements PubSub {
     public static final long serialVersionUID = 1234567890L;
     private Map<String, Topic> topics = new HashMap<>();
-
+    private List<SubscriberImpl> subscribers = new ArrayList<>();
+    
     public PubSubImpl() throws RemoteException {
     }
 
@@ -29,6 +30,15 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     public synchronized boolean createTopic(String topic) throws RemoteException {
         if (!topics.containsKey(topic)) {
             topics.put(topic, new Topic(topic));
+            for(int i=0; i<subscribers.size(); i++) {
+                //recorrer la lista de suscriptores, y para cada uno que 
+                // tenga callback no nulo, llamar a callback.topicAdded(topic)
+                SubscriberImpl subscriber = subscribers.get(i);
+                // el callback es scbk de la clase SubscriberImpl
+                if(suscriber.scbk != null) {
+                    subscriber.scbk.topicAdded(topic);
+                }
+            }
             return true;
         }
         return false;
@@ -55,11 +65,15 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
     }
 
     public synchronized Subscriber initSubscriber(SubscriberCallback c) throws RemoteException {
-        return null;
+        //es crear el usuarioSuscrito, añadirlo a la lista y retornarlo
+        SubscriberImpl subscriber = new SubscriberImpl(c);
+        subscribers.add(subscriber);
+        return subscriber;
     }
 
     public synchronized Collection<Subscriber> subscriberList() throws RemoteException {
-        return null;
+        //simplemente es retornar la lista
+        return subscribers;
     }
 
     public synchronized Collection<Subscriber> subscriberListByTopic(String topic) throws RemoteException {
