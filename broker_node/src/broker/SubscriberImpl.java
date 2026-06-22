@@ -26,7 +26,8 @@ class SubscriberImpl extends UnicastRemoteObject implements Subscriber {
     transient SubscriberCallback scbk;
     private List<String> topicsSubscribed = new ArrayList<>();
     private LinkedList<Event> events = new LinkedList<>();
-
+    private boolean finished = false;
+    
     public SubscriberImpl(PubSubImpl p, SubscriberCallback s) throws RemoteException {
         super(); // extiende UnicastRemoteObject();
         scbk = s;
@@ -35,10 +36,12 @@ class SubscriberImpl extends UnicastRemoteObject implements Subscriber {
     }
 
     public UUID getUUID() throws RemoteException {
+        if (finished) throw new NoSuchObjectException("this subscriber has already finished");
         return subUUID;
     }
 
     public int subscribe(String topic, boolean glob) throws RemoteException {
+        if (finished) throw new NoSuchObjectException("this subscriber has already finished");
         int contadorSuscripciones = 0;
         if (glob == false) {
             Topic t = ps.getTopic(topic);
@@ -68,21 +71,25 @@ class SubscriberImpl extends UnicastRemoteObject implements Subscriber {
     }
 
     public Event getEvent() throws RemoteException {
+        if (finished) throw new NoSuchObjectException("this subscriber has already finished");
         if (!events.isEmpty()) {
             return events.poll();
         }
         return null;
     }
 
-    public void addEvent(Event event) {
+    public void addEvent(Event event) throws RemoteException {
+        if (finished) throw new NoSuchObjectException("this subscriber has already finished");
         events.add(event);
     }
 
     public Collection<String> topicListBySubscriber() throws RemoteException {
+        if (finished) throw new NoSuchObjectException("this subscriber has already finished");
         return new ArrayList<>(topicsSubscribed);
     }
 
     public boolean unsubscribe(String topic) throws RemoteException {
+        if (finished) throw new NoSuchObjectException("this subscriber has already finished");
         if (topicsSubscribed.contains(topic)) {
             topicsSubscribed.remove(topic);
             Topic t = ps.getTopic(topic);
@@ -95,15 +102,12 @@ class SubscriberImpl extends UnicastRemoteObject implements Subscriber {
     }
 
     public void exit() throws RemoteException {
-
+        if (finished) throw new NoSuchObjectException("this subscriber has already finished");
         for (String topic : new ArrayList<>(topicsSubscribed)) {
             unsubscribe(topic);
         }
         ps.removeSubscriber(this);
-
-        try {
-            UnicastRemoteObject.unexportObject(this, true);
-        } catch (NoSuchObjectException e) {
-        }
+        finished = true;
+        
     }
 }
