@@ -37,7 +37,10 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
                 SubscriberImpl subscriber = subscribers.get(i);
                 // el callback es scbk de la clase SubscriberImpl
                 if (subscriber.scbk != null) {
-                    subscriber.scbk.topicAdded(topic);
+                    try {
+                        subscriber.scbk.topicAdded(topic);
+                    } catch (RemoteException e) {
+                    }
                 }
             }
             return true;
@@ -86,12 +89,32 @@ class PubSubImpl extends UnicastRemoteObject implements PubSub {
 
     public synchronized Collection<Subscriber> subscriberListByTopic(String topic) throws RemoteException {
         Topic t = topics.get(topic);
-        if (t == null) return null;
+        if (t == null)
+            return null;
         return new ArrayList<>(t.getSubscribers());
     }
 
     public synchronized boolean deleteTopic(String topic) throws RemoteException {
+        Topic t = topics.remove(topic);
+        if (t != null) {
+            for (SubscriberImpl subscriber : t.getSubscribers()) {
+                subscriber.unsubscribe(topic);
+            }
+            for (SubscriberImpl subscriber : subscribers) {
+                if (subscriber.scbk != null) {
+                    try {
+                        subscriber.scbk.topicRemoved(topic);
+                    } catch (RemoteException e) {
+                    }
+                }
+            }
+            return true;
+        }
         return false;
+    }
+
+    public synchronized void removeSubscriber(SubscriberImpl subscriber) throws RemoteException {
+        subscribers.remove(subscriber);
     }
 
     static public void main(String args[]) {

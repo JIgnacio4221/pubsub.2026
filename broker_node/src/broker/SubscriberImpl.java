@@ -1,5 +1,6 @@
 // Clase que implementa la interfaz remota Subscriber
 package broker;
+
 import java.rmi.RemoteException;
 import java.rmi.NoSuchObjectException;
 import java.rmi.registry.LocateRegistry;
@@ -17,42 +18,41 @@ import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 
-
-class SubscriberImpl extends UnicastRemoteObject implements Subscriber  {
-    public static final long serialVersionUID=1234567890L;
+class SubscriberImpl extends UnicastRemoteObject implements Subscriber {
+    public static final long serialVersionUID = 1234567890L;
     UUID subUUID; // para facilitar depuración
     PubSubImpl ps; // para acceder a funcionalidad del servicio general
     // para notificar al subscriptor de creación y destrucción de temas
-    transient SubscriberCallback scbk; 
+    transient SubscriberCallback scbk;
     private List<String> topicsSubscribed = new ArrayList<>();
     private LinkedList<Event> events = new LinkedList<>();
 
     public SubscriberImpl(PubSubImpl p, SubscriberCallback s) throws RemoteException {
-        super(); // extiende UnicastRemoteObject(); 
-        scbk=s;
+        super(); // extiende UnicastRemoteObject();
+        scbk = s;
         subUUID = UUID.randomUUID();
-	ps=p;
+        ps = p;
     }
+
     public UUID getUUID() throws RemoteException {
         return subUUID;
     }
 
-   
     public int subscribe(String topic, boolean glob) throws RemoteException {
         int contadorSuscripciones = 0;
-        if(glob==false){
+        if (glob == false) {
             Topic t = ps.getTopic(topic);
-            if(t!=null&&!topicsSubscribed.contains(topic)){
+            if (t != null && !topicsSubscribed.contains(topic)) {
                 topicsSubscribed.add(topic);
                 t.addSubscriber(this);
                 contadorSuscripciones++;
             }
-        }else{
-            //en lugar de suscribirse a un tema concreto,
-            //  el patron se compara contra todos 
+        } else {
+            // en lugar de suscribirse a un tema concreto,
+            // el patron se compara contra todos
             // los temas existentes y el suscriptor se suscribe a todos los quee encajan
-            PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-            
+            PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + topic);
+
             for (String nombreTema : ps.topicList()) {
                 if (matcher.matches(Paths.get(nombreTema))) {
                     Topic t = ps.getTopic(nombreTema);
@@ -66,21 +66,44 @@ class SubscriberImpl extends UnicastRemoteObject implements Subscriber  {
         }
         return contadorSuscripciones;
     }
+
     public Event getEvent() throws RemoteException {
         if (!events.isEmpty()) {
             return events.poll();
         }
         return null;
     }
+
     public void addEvent(Event event) {
         events.add(event);
     }
+
     public Collection<String> topicListBySubscriber() throws RemoteException {
         return new ArrayList<>(topicsSubscribed);
     }
+
     public boolean unsubscribe(String topic) throws RemoteException {
-        return true;
+        if (topicsSubscribed.contains(topic)) {
+            topicsSubscribed.remove(topic);
+            Topic t = ps.getTopic(topic);
+            if (t != null) {
+                t.getSubscribers().remove(this);
+            }
+            return true;
+        }
+        return false;
     }
+
     public void exit() throws RemoteException {
+
+        for (String topic : new ArrayList<>(topicsSubscribed)) {
+            unsubscribe(topic);
+        }
+        ps.removeSubscriber(this);
+
+        try {
+            UnicastRemoteObject.unexportObject(this, true);
+        } catch (NoSuchObjectException e) {
+        }
     }
 }

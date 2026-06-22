@@ -27,7 +27,9 @@ class Topic {
     }
 
     public void addSubscriber(SubscriberImpl subscriber) {
-        subscribers.add(subscriber);
+        if (!subscribers.contains(subscriber)) {
+            subscribers.add(subscriber);
+        }
     }
 
     public List<SubscriberImpl> getSubscribers() {
